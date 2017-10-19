@@ -102,21 +102,7 @@ public class plteActService implements Listener {
 		else if (rspCode == 0){
 			resultCode = 500;
 		}
-		
-		// [TEMP]
-//		rspCode = 200;		
-//		JSONObject responseJSONObject = new JSONObject();
-//				
-//		responseJSONObject.put("code", 100);
-//		responseJSONObject.put("message", "success");
-//		this.msg = responseJSONObject.toString();
-//		resultCode = rspCode;
-		// [/TEMP]
-		
-		// Add Timer to Check 10 seconds
-		//TimeCheckManager.getInstance().setCheckInfo(this.msg);
-		
-		
+				
 		// 03. Setting and Send to APP ( PLTEIB -> APP )
 		if(PLTEConnector.getInstance().isLogFlag()) {
 			logger.info("=============================================");

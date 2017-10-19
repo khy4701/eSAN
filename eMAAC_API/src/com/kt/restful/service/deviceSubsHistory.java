@@ -23,7 +23,7 @@ import com.kt.restful.net.PLTEConnector;
 import com.kt.restful.net.PLTEManager;
 import com.kt.restful.net.PROVIBManager;
 
-@Path("/query/history/Device-subscriber")
+@Path("/query/history")
 public class deviceSubsHistory implements Listener {
 	
 	private static Logger logger = LogManager.getLogger(deviceSubsHistory.class);
@@ -31,32 +31,15 @@ public class deviceSubsHistory implements Listener {
 	
 	@SuppressWarnings("static-access")
 	@POST
+	@Path("/device-subscriber")
 	@Produces("application/json;charset=UTF-8")
 	//@Consumes("application/x-www-form-urlencoded")
-	public Response getTokenServ(@Context HttpServletRequest req, @HeaderParam("akey") @Encoded String akey, @JsonProperty("") String jsonbody ) {
+	public Response getSubsHistoryServ(@Context HttpServletRequest req, @HeaderParam("akey") @Encoded String akey, @JsonProperty("") String jsonbody ) {
 
 		// 01. Read Json Parameter
 		JSONObject jsonObj = new JSONObject(jsonbody);
 		String jsonBody = jsonObj.toString();
-		
-//		String nasMdn = jsonObj.get("NAS_MDN").toString();
-//		String startTime = jsonObj.get("START_TIME").toString();
-//		String endTime = jsonObj.get("END_TIME").toString();
-//		String mac = null;
-//		String ip  = null; 
-//
-//		try {
-//			mac = jsonObj.get("MAC").toString();
-//		} catch (Exception e) {
-//			mac = null;
-//		}
-//
-//		try {
-//			ip = jsonObj.get("IP").toString();
-//		} catch (Exception e) {
-//			ip = null;
-//		}
-				
+						
 		// 00. Logging Receive Message 
 		if(PLTEConnector.getInstance().isLogFlag()) {
 			logger.info("=============================================");
@@ -64,41 +47,13 @@ public class deviceSubsHistory implements Listener {
 			logger.info("REQUEST URL : " + req.getRequestURL().toString());
 			logger.info("akey : " + akey);
 			logger.info("BODY : " + jsonBody);
-//			logger.info("NAS_MDN : " + nasMdn);
-//			logger.info("MAC : " + mac);
-//			logger.info("IP : " + ip);
+
 			logger.info("=============================================");
 		}
 		
 		// 01. Message Setting and Send ( APP -> PLTEIB )
 		int clientID = PLTEManager.getInstance().getClientReqID();
 		
-//		List<String[]> params = new ArrayList<String[]>();
-//
-//		if(nasMdn != null) {
-//			String[] param1 = {"NAS_MDN", nasMdn};
-//			params.add(param1);
-//		}
-//		
-//		if(mac != null) {
-//			String[] param2 = {"MAC", mac};
-//			params.add(param2);
-//		}
-//		
-//		if(ip != null) {
-//			String[] param3 = {"IP", ip};
-//			params.add(param3);
-//		}
-//		
-//		if(startTime != null){
-//			String[] param4 = {"START_TIME", startTime};
-//			params.add(param4);
-//		}
-//		
-//		if(endTime != null){
-//			String[] param5 = {"END_TIME", endTime};
-//			params.add(param5);			
-//		}
 	
 		PROVIBManager.getInstance().sendCommand(ApiDefine.DEV_SUBS_HISTORY.getName(), jsonBody, this, clientID, akey);
 		
@@ -128,18 +83,7 @@ public class deviceSubsHistory implements Listener {
 		default :
 			resultCode = 500;				
 		}
-		
-		// [TEMP]
-//		rspCode = 200;		
-//		JSONObject responseJSONObject = new JSONObject();
-//				
-//		responseJSONObject.put("code", 100);
-//		responseJSONObject.put("message", "success");
-//		this.msg = responseJSONObject.toString();
-//		resultCode = rspCode;
-		// [/TEMP]
-		
-		
+	
 		// 03. Setting and Send to APP ( PLTEIB -> APP )
 		if(PLTEConnector.getInstance().isLogFlag()) {
 			logger.info("=============================================");
@@ -151,6 +95,74 @@ public class deviceSubsHistory implements Listener {
 
 		return Response.status(resultCode).entity(this.msg).build();
 	}
+	
+	
+	
+	@SuppressWarnings("static-access")
+	@POST
+	@Path("/device-subscriber-list")
+	@Produces("application/json;charset=UTF-8")
+	//@Consumes("application/x-www-form-urlencoded")
+	public Response getSubsHistoryListServ(@Context HttpServletRequest req, @HeaderParam("akey") @Encoded String akey, @JsonProperty("") String jsonbody ) {
+
+		// 01. Read Json Parameter
+		JSONObject jsonObj = new JSONObject(jsonbody);
+		String jsonBody = jsonObj.toString();
+						
+		// 00. Logging Receive Message 
+		if(PLTEConnector.getInstance().isLogFlag()) {
+			logger.info("=============================================");
+			logger.info(ApiDefine.DEV_SUBS_LIST_HISTORY.getName());
+			logger.info("REQUEST URL : " + req.getRequestURL().toString());
+			logger.info("akey : " + akey);
+			logger.info("BODY : " + jsonBody);
+			logger.info("=============================================");
+		}
+		
+		// 01. Message Setting and Send ( APP -> PROVIB )
+		int clientID = PLTEManager.getInstance().getClientReqID();
+			
+		PROVIBManager.getInstance().sendCommand(ApiDefine.DEV_SUBS_LIST_HISTORY.getName(), jsonBody, this, clientID, akey);
+		
+	    int resultCode = 200;
+		// 02. Waiting 
+		while(clientID != receiveReqID ){
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		} 		  	
+		
+		switch (rspCode) {
+		case 1:
+			resultCode = 200;
+			break;
+		case -1:
+			resultCode = 400;
+			break;
+		case -2:
+			resultCode = 404;
+			break;
+		case -4:
+			resultCode = 503;
+			break;
+		default :
+			resultCode = 500;				
+		}
+				
+		// 03. Setting and Send to APP ( PLTEIB -> APP )
+		if(PLTEConnector.getInstance().isLogFlag()) {
+			logger.info("=============================================");
+			logger.info(ApiDefine.DEV_SUBS_LIST_HISTORY.getName() + " REPONSE");
+			logger.info("Stauts : " + resultCode);
+			logger.debug(this.msg);
+			logger.info("=============================================");
+		}
+
+		return Response.status(resultCode).entity(this.msg).build();
+	}
+	
 	
 	private int receiveReqID = -1;
 	private int rspCode = -1;

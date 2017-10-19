@@ -142,7 +142,11 @@ public abstract class Connector implements Runnable {
 
 			dataIn = new DataInputStream(new BufferedInputStream(socket.getInputStream(), BUFFER_SIZE));
 			dataOut = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), BUFFER_SIZE));
+
+			
 		} catch (SocketException se) {
+			logger.error("Socket closed..");
+
 			socket = null;
 			return false;
 		} catch (IOException e) {

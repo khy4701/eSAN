@@ -11,6 +11,7 @@ public enum ApiDefine {
 	DEV_SUBS_LIST("device-subscriber-list"),
 	DEV_SUBS("device-subscriber"),
 	DEV_SUBS_HISTORY("device-subscriber-history"),
+	DEV_SUBS_LIST_HISTORY("device-subscriber-list-history"),
 	
 	PUSH_TRIGGER("http://%s:%d/api/app/plteact?mdn=%s&authKey=%s&plteMode=ON");
 

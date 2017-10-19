@@ -18,8 +18,8 @@ public class ClientTask extends TimerTask {
 	@Override
     public void run() {
     	
-    	TimeCheckManager.getInstance().checkOverTime();
+    	//TimeCheckManager.getInstance().checkOverTime();
     	PLTEConnector.getInstance();
-    	PROVIBConnector.getInstance();
+       	PROVIBConnector.getInstance();
     }
 }

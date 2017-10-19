@@ -25,17 +25,17 @@ public class PLTEConnector extends Connector {
 	private int reservedMsgSize;
 	private int totalReadSize, currentReadSize;
 	private int[] msgSize;
-	private static PLTEConnector dbmConnector;
+	private static PLTEConnector plteConnector = null;
 	private boolean logFlag = false;
 	
 	public static int reqId = 1000;
 	
 	
 	public static PLTEConnector getInstance() {
-		if(dbmConnector == null || !dbmConnector.isConnected()) {
-			dbmConnector = new PLTEConnector();
+		if(plteConnector == null || !plteConnector.isConnected()) {
+			plteConnector = new PLTEConnector();
 		}
-		return dbmConnector;
+		return plteConnector;
 	}
 	
 	public PLTEConnector() {
@@ -97,6 +97,8 @@ public class PLTEConnector extends Connector {
 				dataOut.write("\0".getBytes());
 			
 			// [3]. AUTH KEY
+			if(akey == null)
+				akey ="";
 			dataOut.write(akey.getBytes());
 			for(int i = 0; i < 64 - akey.length(); i++)
 				dataOut.write("\0".getBytes());
@@ -290,7 +292,7 @@ public class PLTEConnector extends Connector {
 				}				
 				
 				// REQUEST ==> Client Mode∑Œ µø¿€
-				if(pmt.getApiName().toUpperCase().equals("PUSHTRIGGER")){
+				if(pmt.getApiName().toUpperCase().equals("plteresult")){
 					// 	public pushTriggerService(String apiName, int tid, String mdn, String imsi, String body ){
 					pushTriggerService pService = new pushTriggerService(pmt.getApiName(), Integer.parseInt(pmt.getSeqNo()), pmt.getMdn() ,pmt.getImsi(), pmt.getData());
 					pService.start();

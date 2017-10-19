@@ -25,21 +25,24 @@ public class PROVIBConnector extends Connector {
 	private int reservedMsgSize;
 	private int totalReadSize, currentReadSize;
 	private int[] msgSize;
-	private static PROVIBConnector dbmConnector;
+	private static PROVIBConnector provConnector = null;
 	private boolean logFlag = false;
 	
 	public static int reqId = 1000;
 	
 	
 	public static PROVIBConnector getInstance() {
-		if(dbmConnector == null || !dbmConnector.isConnected()) {
-			dbmConnector = new PROVIBConnector();
+		if(provConnector == null || !provConnector.isConnected()) {
+
+			provConnector = new PROVIBConnector();
 		}
-		return dbmConnector;
+		return provConnector;
 	}
 	
 	public PROVIBConnector() {
 		super(PROVIBManager.getInstance(), esanProperty.getPropPath("esan_prov_ipaddress"), Integer.parseInt(esanProperty.getPropPath("esan_prov_port")));
+		
+		
 		msgSize = new int[4];
 		for( int i=0; i<msgSize.length; i++ )
 		    msgSize[i] = -1;
@@ -99,6 +102,8 @@ public class PROVIBConnector extends Connector {
 				dataOut.write("\0".getBytes());
 			
 			// [3]. AUTH KEY
+			if(akey == null)
+				akey ="";
 			dataOut.write(akey.getBytes());
 			for(int i = 0; i < 64 - akey.length(); i++)
 				dataOut.write("\0".getBytes());
