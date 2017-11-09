@@ -1,8 +1,5 @@
 package com.kt.restful.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.HeaderParam;
@@ -36,24 +33,17 @@ public class deviceSubsService implements Listener {
 	public Response getSubsService(@Context HttpServletRequest req, @HeaderParam("akey")  @Encoded String akey, @JsonProperty("") String jsonbody ) {
 
 		// 01. Read Json Parameter
-		JSONObject jsonObj = new JSONObject(jsonbody);
-		String jsonBody = jsonObj.toString();
-
-//		String nasMdn = jsonObj.get("NAS_MDN").toString();
-//		String mac = null;
-//		String ip  = null; 
-//
-//		try {
-//			mac = jsonObj.get("MAC").toString();
-//		} catch (Exception e) {
-//			mac = null;
-//		}
-//
-//		try {
-//			ip = jsonObj.get("IP").toString();
-//		} catch (Exception e) {
-//			ip = null;
-//		}
+		int resultCode = 200;
+		
+		JSONObject jsonObj = null;
+		String jsonBody = null;
+		try{
+			jsonObj = new JSONObject(jsonbody);
+			jsonBody= jsonObj.toString();
+		}		
+		catch(Exception e){
+			logger.error("Json Parsing Error  : " + jsonbody);
+		}
 		
 		// 00. Logging Receive Message 
 		if(PLTEConnector.getInstance().isLogFlag()) {
@@ -91,7 +81,7 @@ public class deviceSubsService implements Listener {
 	
 		PROVIBManager.getInstance().sendCommand(ApiDefine.DEV_SUBS.getName(), jsonBody, this, clientID, akey);
 		
-	    int resultCode = 200;
+	    
 		// 02. Waiting 
 		while(clientID != receiveReqID ){
 			try {
@@ -141,7 +131,7 @@ public class deviceSubsService implements Listener {
 			logger.info("=============================================");
 		}
 
-		return Response.status(resultCode).entity(this.msg).build();
+		return Response.status(resultCode).header("Content-Length", this.msg.getBytes().length).entity(this.msg).build();
 	}
 
 	@SuppressWarnings("static-access")
@@ -225,8 +215,7 @@ public class deviceSubsService implements Listener {
 			logger.info(this.msg);
 			logger.info("=============================================");
 		}
-
-		return Response.status(resultCode).entity(this.msg).build();
+		return Response.status(resultCode).header("Content-Length", this.msg.getBytes().length).entity(this.msg).build();
 	}
 
 	

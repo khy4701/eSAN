@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -12,20 +11,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.kt.restful.model.ApiDefine;
-import com.kt.restful.model.ResponseMsg;
-import com.kt.restful.net.PLTEConnector;
 import com.kt.restful.net.Listener;
+import com.kt.restful.net.PLTEConnector;
 import com.kt.restful.net.PLTEManager;
-import com.sun.jersey.core.spi.factory.ResponseBuilderImpl;
 
 @Path("/app/plteactconfirm")
 public class plteConfimService implements Listener {
@@ -121,7 +114,7 @@ public class plteConfimService implements Listener {
 			logger.info("=============================================");
 		}
 
-		return Response.status(resultCode).entity(this.msg).build();
+		return Response.status(resultCode).header("Content-Length", this.msg.getBytes().length).entity(this.msg).build();
 	}
 
 	

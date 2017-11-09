@@ -41,12 +41,6 @@ public class PROVIBManager implements Receiver{
 			provMembers.remove(sender);
 		}
 	}
-
-	// [Client Mode] Send to response
-	public synchronized static void sendCommand(String command, int resCode, int reqId) {
-		
-		PROVIBConnector.getInstance().sendMessage(command, resCode , reqId);			
-	}
 	
 	public synchronized void receiveMessage(String message, int rspCode, int cliReqId) {
 		SenderInfo sender = null;

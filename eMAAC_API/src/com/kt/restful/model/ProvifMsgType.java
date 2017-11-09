@@ -28,6 +28,8 @@ public class ProvifMsgType {
 	private String imsi;
 	private String mdn;
 	private String ipAddress;
+	private String apiHost;
+	private int apiPort;
 	private int resCode;
 	private String data;
 	private String authKey;
@@ -44,6 +46,7 @@ public class ProvifMsgType {
 	private byte[] seqNoBuffer;
 	private byte[] dataBuffer;
 	private byte[] authKeyBuffer;
+	private byte[] apiHostBuffer;
 	
 	private static int API_NAME_LEN = 64;
 	private static int SEQ_NO_LEN = 8;
@@ -51,6 +54,7 @@ public class ProvifMsgType {
 	private static int MDN_LEN = 12;
 	private static int IP_ADDRESS_LEN = 64;
 	private static int AUTH_KEY_LEN = 64;
+	private static int API_HOST_LEN = 64;
 	
 	public ProvifMsgType() {
 		apiName = "";
@@ -58,10 +62,13 @@ public class ProvifMsgType {
 		imsi = "";
 		mdn = "";
 		ipAddress = "";
+		apiHost = "";
+		apiPort = 0;
 		resCode = 0;
 		data = "";
 		
 		apiNameBuffer = new byte[API_NAME_LEN];
+		apiHostBuffer = new byte[API_HOST_LEN];
 		authKeyBuffer = new byte[AUTH_KEY_LEN];
 		seqNoBuffer = new byte[SEQ_NO_LEN];
 
@@ -69,6 +76,8 @@ public class ProvifMsgType {
 		for( int i=0; i<msgSize.length; i++ )
 		    msgSize[i] = -1;
 	}
+	
+	
 	
 	private int[] msgSize = new int[4];
 	private int reservedMsgSize;
@@ -81,9 +90,11 @@ public class ProvifMsgType {
 	 * [1][API_NAME]  = [64]   - Header
 	 * [2][SEQ_NUM ]  = [8]    - Header
 	 * [3][AUTH_KEY]  = [64]   - Header
-	 * [4][RES_CODE]  = [4]    - Header
-	 * [5][BODY_LEN]  = [4]    - Body
-	 * [6][BODY    ]  = [BODY] - Body
+	 * [4][API_HOST]  = [64]   - Header
+	 * [5][API_PORT]  = [64]   - Header
+	 * [6][RES_CODE]  = [4]    - Header
+	 * [7][BODY_LEN]  = [4]    - Body
+	 * [7][BODY    ]  = [BODY] - Body
 	 * =====================================
 	 */	
 
@@ -101,11 +112,18 @@ public class ProvifMsgType {
 		in.read(authKeyBuffer, 0, authKeyBuffer.length);
 		this.setAuthKey(Util.nullTrim(new String(authKeyBuffer)));
 
-		// [4] RES_CODE
+		// [4] API_HOST
+		in.read(apiHostBuffer, 0, apiHostBuffer.length);
+		this.setApiHost(Util.nullTrim(new String(apiHostBuffer)));
+		
+		// [5] API_PORT
+		this.setApiPort(byteToInt(toBytes(in.readInt()), ByteOrder.LITTLE_ENDIAN));
+		
+		// [6] RES_CODE
 		this.setResCode(byteToInt(toBytes(in.readInt()), ByteOrder.LITTLE_ENDIAN));
 //		this.setResCode(byteToInt(toBytes(in.readInt()), ByteOrder.BIG_ENDIAN));
 		
-		// [5] BODY_LEN
+		// [7] BODY_LEN
 		//reservedMsgSize = byteToInt(toBytes(in.readInt()), ByteOrder.LITTLE_ENDIAN);
 		reservedMsgSize = byteToInt(toBytes(in.readInt()), ByteOrder.BIG_ENDIAN);
 	    dataBuffer = new byte[reservedMsgSize];
@@ -115,7 +133,7 @@ public class ProvifMsgType {
 //		reservedMsgSize = byteToInt(toBytes(in.readInt()), ByteOrder.BIG_ENDIAN);
 //	    dataBuffer = new byte[reservedMsgSize];
 	    
-	    // [6] BODY
+	    // [8] BODY
 		in.read(dataBuffer, 0, dataBuffer.length);
 		this.setData(Util.nullTrim(new String(dataBuffer)));
 		
@@ -209,6 +227,22 @@ public class ProvifMsgType {
 
 	public void setReservedMsgSize(int reservedMsgSize) {
 		this.reservedMsgSize = reservedMsgSize;
+	}
+	
+	public void setApiHost(String apiHost){
+		this.apiHost = apiHost;
+	}
+	
+	public void setApiPort(int apiPort){
+		this.apiPort = apiPort;
+	}
+	
+	public String getApiHost(){
+		return this.apiHost;
+	}
+	
+	public int getApiPort(){
+		return this.apiPort;
 	}
 	
 	public void parsingBody(String body, String seperator){

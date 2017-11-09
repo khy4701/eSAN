@@ -142,6 +142,7 @@ public abstract class Connector implements Runnable {
 
 			dataIn = new DataInputStream(new BufferedInputStream(socket.getInputStream(), BUFFER_SIZE));
 			dataOut = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), BUFFER_SIZE));
+			logger.error("Socket Connection Success..");
 
 			
 		} catch (SocketException se) {

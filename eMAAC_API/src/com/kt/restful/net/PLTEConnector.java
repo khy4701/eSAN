@@ -58,6 +58,8 @@ public class PLTEConnector extends Connector {
 		}
 	}	
 
+	//[Server Mode] Send to Client
+	//public boolean sendMessage(String command, List<String[]> params, int clientReqID, String akey) {
 	public boolean sendMessage(String command, List<String[]> params, int clientReqID, String akey) {
 		try {
 			StringBuffer bodySB = new StringBuffer();
@@ -73,10 +75,12 @@ public class PLTEConnector extends Connector {
 			 * =====================================
 			 * [1][API_NAME]  = [64]   - Header
 			 * [2][SEQ_NUM ]  = [8]    - Header
-			 * [3][AUTH_KEY]  = [65]   - Header
-			 * [4][RES_CODE]  = [4]    - Header
-			 * [5][BODY_LEN]  = [4]    - Body
-			 * [6][BODY    ]  = [BODY] - Body
+			 * [3][AUTH_KEY]  = [64]   - Header
+			 * [4][API_HOST]  = [64]   - Header
+			 * [5][API_PORT]  = [4]   - Header
+			 * [6][RES_CODE]  = [4]    - Header
+			 * [7][BODY_LEN]  = [4]    - Body
+			 * [8][BODY    ]  = [BODY] - Body
 			 * =====================================
 			 */
 			
@@ -84,7 +88,7 @@ public class PLTEConnector extends Connector {
 			int bodyLen = bodySB.toString().length();
 						
 			// [0]. DATA_TOTAL_LEN
-			dataOut.write(toBytes(64+8+64+4+4+bodyLen));
+			dataOut.write(toBytes(64+8+64+64+4+4+4+bodyLen));
 			
 			// [1]. API_NAME
 			dataOut.write(command.getBytes());
@@ -102,15 +106,25 @@ public class PLTEConnector extends Connector {
 			dataOut.write(akey.getBytes());
 			for(int i = 0; i < 64 - akey.length(); i++)
 				dataOut.write("\0".getBytes());
+			
+			// [4]. API_HOST
+			String apiHost = "NOT USED";
+			dataOut.write(apiHost.getBytes());
+			for(int i = 0; i < 64 - apiHost.length(); i++)
+				dataOut.write("\0".getBytes());
+			
+			// [5]. API_PORT
+			int apiPort = 0;
+			dataOut.writeInt(apiPort);
 	
-			// [4]. RES_CODE
+			// [6]. RES_CODE
 			dataOut.writeInt(0);
 
-			// [5]. BODY_LEN
+			// [7]. BODY_LEN
 			dataOut.write(toBytes(bodyLen));
 			//dataOut.writeInt(bodyLen);
 									
-			// [6]. BODY
+			// [8]. BODY
 			dataOut.write(bodySB.toString().getBytes());
 			dataOut.flush();
 			
@@ -120,9 +134,11 @@ public class PLTEConnector extends Connector {
 			logger.info("apiName : " + command);
 			logger.info("tid : " + clientReqID);
 			logger.info("akey : " + akey);
+			logger.info("apiHost : " + apiHost);
+			logger.info("apiPort : " + apiPort);		
 			logger.info("bodyLen : " + bodyLen);
 			logger.info("==============BODY==================");
-			logger.info(bodySB.toString());
+			logger.debug(bodySB.toString());
 			logger.info("====================================");
 			logger.info("=============================================");
 			}
@@ -134,7 +150,8 @@ public class PLTEConnector extends Connector {
 		return true;
 	}
 	
-	public boolean sendMessage(String command, int resCode, int clientReqID) {
+	// [Client Mode] Send to Server
+	public boolean sendMessage(String command, int resCode, int clientReqID, String akey) {
 		try {
 			StringBuffer bodySB = new StringBuffer();
 //			for(int i = 0; i < params.size(); i++) {
@@ -150,9 +167,12 @@ public class PLTEConnector extends Connector {
 			 * =====================================
 			 * [1][API_NAME]  = [64]   - Header
 			 * [2][SEQ_NUM ]  = [8]    - Header
-			 * [3][RES_CODE]  = [4]    - Header
-			 * [4][BODY_LEN]  = [4]    - Body
-			 * [5][BODY    ]  = [BODY] - Body
+			 * [3][AUTH_KEY]  = [64]   - Header
+			 * [4][API_HOST]  = [64]   - Header
+			 * [5][API_PORT]  = [4]   - Header
+			 * [6][RES_CODE]  = [4]    - Header
+			 * [7][BODY_LEN]  = [4]    - Body
+			 * [8][BODY    ]  = [BODY] - Body
 			 * =====================================
 			 */
 			
@@ -160,7 +180,7 @@ public class PLTEConnector extends Connector {
 			int bodyLen = bodySB.toString().length();
 						
 			// [0]. DATA_TOTAL_LEN
-			dataOut.write(toBytes(64+8+4+4+bodyLen));
+			dataOut.write(toBytes(64+8+64+64+4+4+4+bodyLen));
 			
 			// [1]. API_NAME
 			dataOut.write(command.getBytes());
@@ -172,14 +192,31 @@ public class PLTEConnector extends Connector {
 			for(int i = 0; i < 8 - (clientReqID+"").length(); i++)
 				dataOut.write("\0".getBytes());
 	
-			// [3]. RES_CODE
+			// [3]. AUTH KEY
+			if(akey == null)
+				akey ="";
+			dataOut.write(akey.getBytes());
+			for(int i = 0; i < 64 - akey.length(); i++)
+				dataOut.write("\0".getBytes());
+			
+			// [4]. API_HOST
+			String apiHost = "NOT USED";
+			dataOut.write(apiHost.getBytes());
+			for(int i = 0; i < 64 - apiHost.length(); i++)
+				dataOut.write("\0".getBytes());
+			
+			// [5]. API_PORT
+			int apiPort = 0;
+			dataOut.writeInt(apiPort);
+						
+			// [6]. RES_CODE
 			dataOut.writeInt(resCode);
 
-			// [4]. BODY_LEN
+			// [7]. BODY_LEN
 			dataOut.write(toBytes(bodyLen));
 			//dataOut.writeInt(bodyLen);
 									
-			// [5]. BODY
+			// [8]. BODY
 			dataOut.write(bodySB.toString().getBytes());
 			dataOut.flush();
 			
@@ -188,9 +225,12 @@ public class PLTEConnector extends Connector {
 			logger.info("RESTIF -> PLTEIB TCP RESPONSE");
 			logger.info("apiName : " + command);
 			logger.info("tid : " + clientReqID);
+			logger.info("akey : " + akey);
+			logger.info("apiHost : " + apiHost);
+			logger.info("apiPort : " + apiPort);		
 			logger.info("bodyLen : " + bodyLen);
 			logger.info("==============BODY==================");
-			logger.info(bodySB.toString());
+			logger.debug(bodySB.toString());
 			logger.info("====================================");
 			logger.info("=============================================");
 			}
@@ -247,9 +287,12 @@ public class PLTEConnector extends Connector {
 	 * =====================================
 	 * [1][API_NAME]  = [64]   - Header
 	 * [2][SEQ_NUM ]  = [8]    - Header
-	 * [3][RES_CODE]  = [4]    - Header
-	 * [4][BODY_LEN]  = [4]    - Body
-	 * [5][BODY    ]  = [BODY] - Body
+	 * [3][AUTH_KEY]  = [64]   - Header
+	 * [4][API_HOST]  = [64]   - Header
+	 * [5][API_PORT]  = [4]   - Header
+	 * [6][RES_CODE]  = [4]    - Header
+	 * [7][BODY_LEN]  = [4]    - Body
+	 * [8][BODY    ]  = [BODY] - Body
 	 * =====================================
 	 */	
 	protected void readMessage() throws IOException {
@@ -283,21 +326,25 @@ public class PLTEConnector extends Connector {
 					logger.info("apiName : " + pmt.getApiName());
 					logger.info("tid : " + pmt.getSeqNo());
 					logger.info("aKey : " + pmt.getAuthKey());
+					logger.info("apiHost :" + pmt.getApiHost());
+					logger.info("apiPort :" + pmt.getApiPort());
 					logger.info("resCode : " + pmt.getResCode());
 					logger.info("bodyLen : " + pmt.getReservedMsgSize());
 					logger.info("==============BODY==================");
-					logger.info(pmt.getData());
+					logger.debug(pmt.getData());
 					logger.info("====================================");
 					logger.info("=============================================");
 				}				
 				
 				// REQUEST ==> Client Mode∑Œ µø¿€
-				if(pmt.getApiName().toUpperCase().equals("plteresult")){
+				if(pmt.getApiName().toUpperCase().equals("PLTERESULT")){
 					// 	public pushTriggerService(String apiName, int tid, String mdn, String imsi, String body ){
-					pushTriggerService pService = new pushTriggerService(pmt.getApiName(), Integer.parseInt(pmt.getSeqNo()), pmt.getMdn() ,pmt.getImsi(), pmt.getData());
+					//pushTriggerService pService = new pushTriggerService(pmt.getApiName(), Integer.parseInt(pmt.getSeqNo()), pmt.getData());
+					pushTriggerService pService = new pushTriggerService(pmt);
 					pService.start();
-				}else
+				}else{
 					receiver.receiveMessage(pmt.getData(), pmt.getResCode(), Integer.parseInt(pmt.getSeqNo()));
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

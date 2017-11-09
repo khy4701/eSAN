@@ -15,9 +15,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.kt.restful.model.ApiDefine;
-import com.kt.restful.model.ProvifMsgType;
-import com.kt.restful.net.PLTEConnector;
 import com.kt.restful.net.Listener;
+import com.kt.restful.net.PLTEConnector;
 import com.kt.restful.net.PLTEManager;
 
 @Path("/app/register_esan")
@@ -106,7 +105,7 @@ public class regeSanService implements Listener {
 			logger.info("=============================================");
 		}
 
-		return Response.status(resultCode).entity(this.msg).build();
+		return Response.status(resultCode).header("Content-Length", this.msg.getBytes().length).entity(this.msg).build();
 	}
 	
 	private int receiveReqID = -1;

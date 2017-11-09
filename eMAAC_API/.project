@@ -34,4 +34,11 @@
 		<nature>org.eclipse.wst.common.project.facet.core.nature</nature>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/com/kt/restful/net/PROVIBConnector.java</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/Desktop/PROVIBConnector.java</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

@@ -1,8 +1,5 @@
 package com.kt.restful.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.HeaderParam;
@@ -37,8 +34,15 @@ public class deviceSubsHistory implements Listener {
 	public Response getSubsHistoryServ(@Context HttpServletRequest req, @HeaderParam("akey") @Encoded String akey, @JsonProperty("") String jsonbody ) {
 
 		// 01. Read Json Parameter
-		JSONObject jsonObj = new JSONObject(jsonbody);
-		String jsonBody = jsonObj.toString();
+		JSONObject jsonObj = null;
+		String jsonBody = null;
+		try{
+			jsonObj = new JSONObject(jsonbody);
+			jsonBody= jsonObj.toString();
+		}		
+		catch(Exception e){
+			logger.error("Json Parsing Error  : " + jsonbody);
+		}
 						
 		// 00. Logging Receive Message 
 		if(PLTEConnector.getInstance().isLogFlag()) {
@@ -47,7 +51,6 @@ public class deviceSubsHistory implements Listener {
 			logger.info("REQUEST URL : " + req.getRequestURL().toString());
 			logger.info("akey : " + akey);
 			logger.info("BODY : " + jsonBody);
-
 			logger.info("=============================================");
 		}
 		
@@ -93,9 +96,9 @@ public class deviceSubsHistory implements Listener {
 			logger.info("=============================================");
 		}
 
-		return Response.status(resultCode).entity(this.msg).build();
+		
+		return Response.status(resultCode).header("Content-Length", this.msg.getBytes().length).entity(this.msg).build();
 	}
-	
 	
 	
 	@SuppressWarnings("static-access")
@@ -106,8 +109,15 @@ public class deviceSubsHistory implements Listener {
 	public Response getSubsHistoryListServ(@Context HttpServletRequest req, @HeaderParam("akey") @Encoded String akey, @JsonProperty("") String jsonbody ) {
 
 		// 01. Read Json Parameter
-		JSONObject jsonObj = new JSONObject(jsonbody);
-		String jsonBody = jsonObj.toString();
+		JSONObject jsonObj = null;
+		String jsonBody = null;
+		try{
+			jsonObj = new JSONObject(jsonbody);
+			jsonBody= jsonObj.toString();
+		}		
+		catch(Exception e){
+			logger.error("Json Parsing Error  : " + jsonbody);
+		}
 						
 		// 00. Logging Receive Message 
 		if(PLTEConnector.getInstance().isLogFlag()) {
@@ -159,8 +169,11 @@ public class deviceSubsHistory implements Listener {
 			logger.debug(this.msg);
 			logger.info("=============================================");
 		}
+		logger.info("MSG_LENGTH  : " + this.msg.length());
 
-		return Response.status(resultCode).entity(this.msg).build();
+		
+		
+		return Response.status(resultCode).header("Content-Length", this.msg.getBytes().length).entity(this.msg).build();
 	}
 	
 	

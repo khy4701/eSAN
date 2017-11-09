@@ -42,9 +42,9 @@ public class PLTEManager implements Receiver{
 	}
 
 	// [Client Mode] Send to response
-	public synchronized static void sendCommand(String command, int resCode, int reqId) {
+	public synchronized static void sendCommand(String command, int resCode, int reqId, String aKey) {
 		
-		PLTEConnector.getInstance().sendMessage(command, resCode , reqId);			
+		PLTEConnector.getInstance().sendMessage(command, resCode , reqId, aKey);			
 	}
 	
 	public synchronized void receiveMessage(String message, int rspCode, int cliReqId) {

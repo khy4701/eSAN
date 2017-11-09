@@ -1,7 +1,5 @@
 package com.kt.restful.service;
 
-import java.util.List;
-
 import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.LogManager;
@@ -9,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import com.kt.restful.constants.esanProperty;
 import com.kt.restful.model.ApiDefine;
+import com.kt.restful.model.ProvifMsgType;
 import com.kt.restful.net.PLTEConnector;
 import com.kt.restful.net.PLTEManager;
 import com.sun.jersey.api.client.Client;
@@ -20,74 +19,96 @@ public class pushTriggerService extends Thread {
 	private int rspCode = -1;
 	private String apiName = null;
 	private int tid = 0;
-	private String mdn = null;
-	private String imsi = null;
+	private String aKey = null;
 	private String body = null;
+	private String apiHost = null;
+	private int apiPort = 0;
 		
 	private static Logger logger = LogManager.getLogger(pushTriggerService.class);
 	
-	public pushTriggerService(String apiName, int tid, String mdn, String imsi, String body ){
+	public pushTriggerService(String apiName, int tid, String body ){
+
 		this.apiName = apiName;
-		this.mdn = mdn;
-		this.imsi = imsi;
 		this.body = body;
 		this.tid = tid;
 	}
 	
+	public pushTriggerService(ProvifMsgType pmt) {
+
+		this.apiName = pmt.getApiName();
+		this.tid = Integer.parseInt(pmt.getSeqNo());
+		this.aKey = pmt.getAuthKey();
+		this.apiHost = pmt.getApiHost();
+		this.apiPort = pmt.getApiPort();
+		this.body = pmt.getData();
+
+	}
+	
+	
 	@SuppressWarnings("static-access")
-	public String sendRequest() {		
+	public void sendRequest() {		
 		String output = "";
+		int resCode = 200;
 		try {
 			Client client = Client.create();
 			WebResource webResource = null;
 			ClientResponse response = null;
 			String url = "";
 
-			url = String.format(ApiDefine.PUSH_TRIGGER.getName(), esanProperty.getPropPath("ext_ipaddress"),
-					Integer.parseInt(esanProperty.getPropPath("ext_port")), mdn, imsi  );
-					
+			url = new String("https://"+this.apiHost+":"+this.apiPort+"/api/query/nas");
+			
 			if(PLTEConnector.getInstance().isLogFlag()) {
 				logger.info("=============================================");
-				logger.info("RESTIF -> [EXT_SERVER]");
-				logger.info("REQUEST URL : " + url );
+				logger.info("RESTIF -> [API_SERVER]");
+				logger.info("tid : " + tid );
+				logger.info("URL : " + url );
+				logger.info("aKey :" + aKey );
+				logger.info("apiName : " + apiName);
+				logger.debug("body : " + body);
 				logger.info("=============================================");
 			}
 
 			// GET METHOD --> Method 형태에 따라.
-			webResource = client.resource(url);
-			response = webResource.type(MediaType.APPLICATION_FORM_URLENCODED).post(ClientResponse.class);
-			
-			if (response.getStatus() == 200) {
-				rspCode = 1;
-				output = response.getEntity(String.class);
-			} else {
+			try{
+				webResource = client.resource(url);
+				response = webResource.type(MediaType.APPLICATION_JSON).header("akey", aKey).header("channel", "esan")
+						.post(ClientResponse.class, body);
+				
+				resCode = response.getStatus();
+				if (resCode == 200) {
+					rspCode = 1;
+				} else if(resCode >= 400 && resCode < 600){
+					rspCode = 0;				
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				logger.error(e.getMessage());
+				resCode = 403;
 				rspCode = 0;
-				output = "";
+			}
+			
+			if(PLTEConnector.getInstance().isLogFlag()) {
+				logger.info("=============================================");
+				logger.info("[API_SERVER] -> RESTIF");
+				logger.info("tid : " + tid );
+				logger.info("apiName : " + apiName);
+				logger.info("aKey : " + aKey );
+				logger.info("body : " + body );
+				logger.info("resCode : " + resCode );
+				logger.info("=============================================");
 			}
 			
 			// PLTEIB로 다시 결과 전송해줘야함!! 
-			PLTEManager.getInstance().sendCommand(ApiDefine.PUSH_TRIGGER.getName(), rspCode, this.tid);
+			PLTEManager.getInstance().sendCommand(apiName, rspCode, tid, aKey);
 			
-			// 기본 소스 
-			//PLTEManager.getInstance().sendCommand(ApiDefine.PLTE_STATUS.getName(), params, this, clientID);
 			
-			rspCode = response.getStatus();
-			if(PLTEConnector.getInstance().isLogFlag()) {
-				logger.info("=============================================");
-				logger.info("RESTIF -> [EXT_SERVER]");
-				logger.info("STATUS : " + response.getStatus() );
-				logger.info(output);
-				logger.info("=============================================");
-			}
-			
+			response.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error(e.getMessage());
-			rspCode = -1;
-			return "";
-		}
 
-		return output;
+		}
 	}
 	
 	@SuppressWarnings("static-access")
